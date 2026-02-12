@@ -2,7 +2,7 @@
 import type { CounterData, Link } from '@/types'
 import { useClipboard } from '@vueuse/core'
 import { CalendarPlus2, Copy, CopyCheck, Eraser, Flame, Hourglass, Link as LinkIcon, MousePointerClick, QrCode, SquareChevronDown, SquarePen, Users } from 'lucide-vue-next'
-import { parseURL } from 'ufo'
+import { hasProtocol, parseURL } from 'ufo'
 import { toast } from 'vue-sonner'
 
 const props = defineProps<{
@@ -14,17 +14,33 @@ const editPopoverOpen = ref(false)
 
 const countersMap = inject<Ref<Record<string, CounterData>> | undefined>('linksCountersMap', undefined)
 const counters = computed(() => countersMap?.value?.[props.link.id])
+const { shortDomain } = useRuntimeConfig().public
 
 const requestUrl = useRequestURL()
-const host = requestUrl.host
-const origin = requestUrl.origin
+const defaultHost = requestUrl.host
+const defaultOrigin = requestUrl.origin
 
 function getLinkHost(url: string): string | undefined {
   const { host } = parseURL(url)
   return host
 }
 
-const shortLink = computed(() => `${origin}/${props.link.slug}`)
+function normalizeShortDomain(value?: string): string {
+  const trimmed = value?.trim()
+  if (!trimmed)
+    return ''
+
+  const normalized = hasProtocol(trimmed) ? trimmed : `https://${trimmed}`
+  const parsed = parseURL(normalized)
+  if (!parsed.host)
+    return ''
+
+  return `${parsed.protocol || 'https'}://${parsed.host}`
+}
+
+const shortOrigin = computed(() => normalizeShortDomain(shortDomain) || defaultOrigin)
+const host = computed(() => parseURL(shortOrigin.value).host || defaultHost)
+const shortLink = computed(() => `${shortOrigin.value}/${props.link.slug}`)
 const linkIcon = computed(() => `https://unavatar.webp.se/${getLinkHost(props.link.url)}?fallback=https://sink.cool/icon.png`)
 
 const { copy, copied } = useClipboard({ source: shortLink.value, copiedDuring: 400 })
