@@ -40,6 +40,17 @@ URL parameters are not carried during link redirection by default and it is not 
 
 The default Sink homepage is the introduction page, you can replace it with your own website.
 
+## `NUXT_PUBLIC_SHORT_DOMAIN`
+
+> If you are using Worker deployment, this variable needs to be configured in **Settings** -> **Build** -> **Variables and Secrets** and **Settings** -> **Variables and Secrets**.
+
+Force short links to use a fixed public domain. This is useful when the dashboard runs on a different host (for example, admin on `links.hvcapital.com` and public redirects on `go.hvcapital.com`).
+
+Examples:
+
+- `go.hvcapital.com`
+- `https://go.hvcapital.com`
+
 ## `NUXT_DATASET`
 
 The Analytics Engine DATASET, it is not recommended to modify unless you need to switch databases and clear historical data.

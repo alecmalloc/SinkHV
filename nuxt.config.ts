@@ -38,6 +38,7 @@ export default defineNuxtConfig({
       previewMode: '',
       slugDefaultLength: '6',
       kvBatchLimit: '50',
+      shortDomain: '',
     },
   },
   routeRules: {

@@ -1,7 +1,7 @@
 import type { LinkSchema } from '#shared/schemas/link'
 import type { H3Event } from 'h3'
 import type { z } from 'zod'
-import { parseURL, stringifyParsedURL } from 'ufo'
+import { hasProtocol, parseURL, stringifyParsedURL } from 'ufo'
 
 type Link = z.infer<typeof LinkSchema>
 
@@ -16,7 +16,25 @@ export function normalizeSlug(event: H3Event, slug: string): string {
 }
 
 export function buildShortLink(event: H3Event, slug: string): string {
+  const { public: { shortDomain } } = useRuntimeConfig(event)
+  const origin = parseShortDomain(shortDomain)
+  if (origin)
+    return `${origin}/${slug}`
+
   return `${getRequestProtocol(event)}://${getRequestHost(event)}/${slug}`
+}
+
+function parseShortDomain(value?: string): string {
+  const shortDomain = value?.trim()
+  if (!shortDomain)
+    return ''
+
+  const normalized = hasProtocol(shortDomain) ? shortDomain : `https://${shortDomain}`
+  const parsed = parseURL(normalized)
+  if (!parsed.host)
+    return ''
+
+  return `${parsed.protocol || 'https'}://${parsed.host}`
 }
 
 export async function putLink(event: H3Event, link: Link): Promise<void> {
